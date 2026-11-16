@@ -1,0 +1,197 @@
+import { chanceWeight, probabilityOf } from "./ordinals";
+import { createRng, type Rng } from "./rng";
+import { expandAll, tagMatches } from "./tags";
+import type { ConditionInstance, Individual, Ordinal, Registry, Species, Trait, Warning } from "./types";
+
+export interface RollLocks {
+  axis_values?: Record<string, string>;
+  /** slot -> trait id. Locked picks participate in conflict filtering. */
+  genotype?: Record<string, string>;
+  scalars?: Record<string, number>;
+  age?: number;
+}
+
+export interface RollOptions {
+  seed: string | number;
+  locks?: RollLocks;
+}
+
+export interface RollResult {
+  individual: Individual;
+  warnings: Warning[];
+}
+
+type Pool = Map<string, Map<string, Ordinal>>; // slot -> trait -> chance ordinal
+
+/** Species pools with axis modifiers applied: base -> axes in declared order; removes win over adds. */
+export function buildPool(species: Species, axisValues: Record<string, string>, warnings: Warning[]): Pool {
+  const pool: Pool = new Map();
+  for (const [slot, entries] of Object.entries(species.pools)) {
+    pool.set(slot, new Map(entries.map((e) => [e.trait, e.chance])));
+  }
+  const removes: { slot: string; trait: string }[] = [];
+  for (const axis of species.axes ?? []) {
+    const chosen = axis.values.find((v) => v.name === axisValues[axis.name]);
+    const mods = chosen?.modifiers;
+    if (!mods) continue;
+    for (const a of mods.add ?? []) {
+      if (!pool.has(a.slot)) pool.set(a.slot, new Map());
+      pool.get(a.slot)!.set(a.trait, a.chance);
+    }
+    for (const r of mods.reweight ?? []) {
+      const slot = pool.get(r.slot);
+      if (slot?.has(r.trait)) slot.set(r.trait, r.chance);
+      else warnings.push({ code: "reweight_missing", message: `Axis ${axis.name}=${chosen!.name} reweights ${r.slot}/${r.trait}, which is not in the pool`, subject: r.trait });
+    }
+    removes.push(...(mods.remove ?? []));
+  }
+  for (const r of removes) pool.get(r.slot)?.delete(r.trait);
+  return pool;
+}
+
+/** Do two traits (in different slots) conflict, in either direction? */
+function traitsConflict(a: Trait, b: Trait): boolean {
+  const hit = (pats: string[], tags: string[]) => pats.some((p) => tags.some((t) => tagMatches(p, t)));
+  return (
+    hit(expandAll(a.conflicts), expandAll(b.provides)) ||
+    hit(expandAll(b.conflicts), expandAll(a.provides))
+  );
+}
+
+function triangular(rng: Rng, min: number, typical: number, max: number): number {
+  if (max <= min) return typical;
+  const u = rng.next();
+  const c = (typical - min) / (max - min);
+  return u < c
+    ? min + Math.sqrt(u * (max - min) * (typical - min))
+    : max - Math.sqrt((1 - u) * (max - min) * (max - typical));
+}
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Sample an individual from a species (spec §7.1).
+ *
+ * Randomness is split into forked streams (`order`, `axis:*`, `slot:*`,
+ * `scalar:*`, `age`, `cond:*`) so editing one part of a species does not shift
+ * the rolls of unrelated parts.
+ */
+export function rollIndividual(speciesId: string, reg: Registry, opts: RollOptions): RollResult {
+  const species = reg.species[speciesId];
+  if (!species) throw new Error(`Unknown species "${speciesId}"`);
+  const warnings: Warning[] = [];
+  const seed = String(opts.seed);
+  const root = createRng(seed);
+  const locks = opts.locks ?? {};
+
+  // 1. axis values
+  const axis_values: Record<string, string> = {};
+  for (const axis of species.axes ?? []) {
+    const locked = locks.axis_values?.[axis.name];
+    if (locked !== undefined) { axis_values[axis.name] = locked; continue; }
+    const pick = root.fork(`axis:${axis.name}`).weighted(axis.values, (v) => chanceWeight(reg.ordinals, v.chance, warnings));
+    if (pick) axis_values[axis.name] = pick.name;
+  }
+  const axisTags = Object.entries(axis_values).map(([k, v]) => `axis:${k}=${v}`);
+
+  // 2. working pool
+  const pool = buildPool(species, axis_values, warnings);
+
+  // 3. genotype: body plan + locks first, then remaining slots in shuffled order
+  const genotype: Record<string, string> = {};
+  const chosenTraits: Trait[] = [];
+  const take = (slot: string, traitId: string) => {
+    const t = reg.traits[traitId];
+    if (!t) {
+      warnings.push({ code: "unknown_trait", message: `Unknown trait "${traitId}" for slot "${slot}"`, subject: traitId });
+      return;
+    }
+    genotype[slot] = traitId;
+    chosenTraits.push(t);
+  };
+
+  const body = reg.traits[species.body_plan];
+  if (!body) warnings.push({ code: "unknown_body_plan", message: `Unknown body plan trait "${species.body_plan}"`, subject: species.body_plan });
+  else take(body.slot, body.id);
+
+  for (const [slot, traitId] of Object.entries(locks.genotype ?? {}).sort(([a], [b]) => a.localeCompare(b))) {
+    if (slot === body?.slot) continue;
+    if (!pool.get(slot)?.has(traitId)) {
+      warnings.push({ code: "locked_outside_pool", message: `Locked trait "${traitId}" is not in the pool for slot "${slot}"`, subject: traitId });
+    }
+    take(slot, traitId);
+  }
+
+  const conflictsWithChosen = (cand: Trait): boolean => {
+    if (expandAll(cand.conflicts).some((p) => axisTags.some((t) => tagMatches(p, t)))) return true;
+    return chosenTraits.some((c) => c.slot !== cand.slot && traitsConflict(cand, c));
+  };
+
+  const slotsToRoll = [...pool.keys()].filter((s) => !(s in genotype)).sort();
+  for (const slot of root.fork("order").shuffle(slotsToRoll)) {
+    const entries = [...pool.get(slot)!.entries()]
+      .map(([traitId, chance]) => ({ trait: reg.traits[traitId], traitId, chance }))
+      .filter((e): e is { trait: Trait; traitId: string; chance: Ordinal } => {
+        if (!e.trait) warnings.push({ code: "unknown_trait", message: `Pool for "${slot}" references unknown trait "${e.traitId}"`, subject: e.traitId });
+        return !!e.trait;
+      });
+    if (entries.length === 0) {
+      warnings.push({ code: "slot_empty", message: `Slot "${slot}" has no candidates`, subject: slot });
+      continue;
+    }
+    let candidates = entries.filter((e) => !conflictsWithChosen(e.trait));
+    if (candidates.length === 0) {
+      warnings.push({ code: "slot_blocked", message: `Every candidate for slot "${slot}" conflicts with earlier picks; falling back to the unfiltered pool`, subject: slot });
+      candidates = entries;
+    }
+    const pick = root.fork(`slot:${slot}`).weighted(candidates, (e) => chanceWeight(reg.ordinals, e.chance, warnings));
+    if (!pick) {
+      warnings.push({ code: "slot_empty", message: `Slot "${slot}" has no candidate with positive chance`, subject: slot });
+      continue;
+    }
+    take(slot, pick.traitId);
+  }
+
+  // 4. scalars
+  const scalars: Record<string, number> = {};
+  for (const [name, def] of Object.entries(species.data ?? {})) {
+    const locked = locks.scalars?.[name];
+    if (locked !== undefined) { scalars[name] = locked; continue; }
+    let [min, max] = def.range;
+    let typical = def.typical;
+    for (const axis of species.axes ?? []) {
+      const m = axis.values.find((v) => v.name === axis_values[axis.name])?.modifiers?.scalars?.[name];
+      if (!m) continue;
+      const mult = m.mult ?? 1, add = m.add ?? 0;
+      min = min * mult + add; max = max * mult + add; typical = typical * mult + add;
+    }
+    scalars[name] = round2(triangular(root.fork(`scalar:${name}`), min, typical, max));
+  }
+
+  // 5. age: default is uniform within the "adult" stage (else 0..lifespan)
+  let age = locks.age;
+  if (age === undefined) {
+    const adult = species.life_stages?.find((s) => s.name === "adult");
+    const lifespan = scalars["lifespan"];
+    const lo = adult?.from_age ?? 0;
+    const hi = adult?.to_age ?? lifespan ?? lo + 20;
+    age = round2(lo + root.fork("age").next() * Math.max(0, hi - lo));
+  }
+
+  // 6. congenital conditions
+  const conditions: ConditionInstance[] = [];
+  for (const c of species.congenital ?? []) {
+    if (!reg.conditions[c.condition]) {
+      warnings.push({ code: "unknown_condition", message: `Congenital list references unknown condition "${c.condition}"`, subject: c.condition });
+      continue;
+    }
+    if (root.fork(`cond:${c.condition}`).chance(probabilityOf(reg.ordinals, c.chance, warnings))) {
+      conditions.push({ condition: c.condition, congenital: true });
+    }
+  }
+
+  return {
+    individual: { species: speciesId, seed, axis_values, genotype, scalars, age, conditions },
+    warnings,
+  };
+}

@@ -1,0 +1,166 @@
+# Reference fixture: an avian humanoid with innate bioelectricity.
+# Numbers (ages, sizes) are placeholders; the point is to exercise the resolver.
+# The male-only crest is a deliberate test addition (sex-limited trait).
+
+manifest:
+  id: fixture-avian-humanoid
+  name: Avian humanoid (test fixture)
+  version: 0.1.0
+  author: ""
+  description: Winged, beaked, fully feathered humanoids with innate bioelectricity and an EMP pulse. Used as the first resolver fixture.
+  content_warnings: []
+
+slots:
+  - { id: body_plan, name: body_plan, description: Base anatomy and part sockets }
+  - { id: wings, name: wings }
+  - { id: mouth, name: mouth }
+  - { id: integument, name: integument, description: Body covering }
+  - { id: plumage_color, name: plumage_color }
+  - { id: plumage_pattern, name: plumage_pattern }
+  - { id: crest, name: crest }
+  - { id: bioelectric, name: bioelectric, description: Innate electrical generation }
+  - { id: emp, name: emp, description: Electromagnetic pulse }
+  - { id: flight, name: flight }
+
+traits:
+  - id: humanoid_body
+    slot: body_plan
+    label: Humanoid
+    provides: ["part:head", "part:torso", "part:arm.{l,r}", "part:leg.{l,r}"]
+    content: { prose: a humanoid frame, image_tags: [humanoid], summary: humanoid }
+
+  - id: feathered_wings
+    slot: wings
+    label: Feathered wings
+    provides: ["part:wing.{l,r}"]
+    requires: ["part:torso"]
+    content: { prose: a pair of feathered wings, image_tags: [feathered wings], summary: winged }
+
+  - id: beak
+    slot: mouth
+    label: Beak
+    provides: ["part:beak"]
+    requires: ["part:head"]
+    content: { prose: a hooked beak in place of a mouth, image_tags: [beak], summary: beaked }
+
+  - id: full_plumage
+    slot: integument
+    label: Full plumage
+    provides: ["cover:feathers"]
+    requires: ["part:torso"]
+    content: { prose: feathers covering the whole body, image_tags: [covered in feathers], summary: feathered }
+
+  - { id: slate, slot: plumage_color, label: Slate, content: { prose: slate-grey plumage, image_tags: [grey feathers] } }
+  - { id: umber, slot: plumage_color, label: Umber, content: { prose: umber plumage, image_tags: [brown feathers] } }
+  - { id: rust, slot: plumage_color, label: Rust, content: { prose: rust-red plumage, image_tags: [red feathers] } }
+  - { id: ivory, slot: plumage_color, label: Ivory, content: { prose: ivory plumage, image_tags: [white feathers] } }
+  - { id: charcoal, slot: plumage_color, label: Charcoal, content: { prose: near-black plumage, image_tags: [black feathers] } }
+
+  - { id: plain, slot: plumage_pattern, label: Plain, content: { prose: unmarked feathers } }
+  - { id: barred, slot: plumage_pattern, label: Barred, content: { prose: barred feathers, image_tags: [barred pattern] } }
+  - { id: speckled, slot: plumage_pattern, label: Speckled, content: { prose: speckled feathers, image_tags: [speckled pattern] } }
+
+  - { id: no_crest, slot: crest, label: No crest }
+  - id: display_crest
+    slot: crest
+    label: Display crest
+    provides: ["feature:crest"]
+    requires: ["axis:sex=male"]
+    content: { prose: a showy crest of head feathers, image_tags: [feather crest], summary: crested }
+
+  - id: bioelectric_physiology
+    slot: bioelectric
+    label: Bioelectric physiology
+    provides: ["power:bioelectric", "ability:shock"]
+    content:
+      prose: a body that generates strong electrical current, usable as a weapon or a power source
+      image_tags: [crackling electricity, sparks]
+      summary: bioelectric
+
+  - id: emp_pulse
+    slot: emp
+    label: EMP pulse
+    provides: ["ability:emp"]
+    requires: [{ any: ["power:bioelectric", "power:cybernetic"] }]
+    content: { prose: can emit an electromagnetic pulse strong enough to disable electronics, summary: emp pulse }
+
+  - id: winged_flight
+    slot: flight
+    label: Flight
+    provides: ["move:flight"]
+    requires: ["part:wing.l", "part:wing.r"]
+    content: { prose: capable of flight, summary: flies }
+
+conditions:
+  - id: uncontrolled_discharge
+    label: Uncontrolled discharge
+    kind_label: genetic disorder
+    target: whole
+    requires: ["power:bioelectric"]
+    provides: ["flaw:discharge"]
+    heritable: true
+    content:
+      prose: cannot always contain their charge and occasionally discharges it into the ground and surroundings at random
+      summary: prone to random discharges
+
+  - id: wing_loss_left
+    label: Left wing lost
+    kind_label: amputation
+    target: "part:wing.l"
+    removes: ["part:wing.l"]
+  - id: wing_loss_right
+    label: Right wing lost
+    kind_label: amputation
+    target: "part:wing.r"
+    removes: ["part:wing.r"]
+
+  - id: damaged_capacitor
+    label: Damaged bioelectric organ
+    kind_label: injury
+    target: whole
+    removes: ["power:bioelectric", "ability:shock"]
+  - id: cybernetic_power_cell
+    label: Cybernetic power cell
+    kind_label: augmentation
+    target: whole
+    provides: ["power:cybernetic"]
+
+species:
+  - id: avian_humanoid
+    label: Avian humanoid
+    body_plan: humanoid_body
+    pools:
+      wings: [{ trait: feathered_wings, chance: common }]
+      mouth: [{ trait: beak, chance: common }]
+      integument: [{ trait: full_plumage, chance: common }]
+      plumage_color:
+        - { trait: slate, chance: common }
+        - { trait: umber, chance: common }
+        - { trait: rust, chance: uncommon }
+        - { trait: ivory, chance: uncommon }
+        - { trait: charcoal, chance: rare }
+      plumage_pattern:
+        - { trait: plain, chance: common }
+        - { trait: barred, chance: uncommon }
+        - { trait: speckled, chance: uncommon }
+      crest:
+        - { trait: no_crest, chance: common }
+        - { trait: display_crest, chance: uncommon }
+      bioelectric: [{ trait: bioelectric_physiology, chance: common }]
+      emp: [{ trait: emp_pulse, chance: common }]
+      flight: [{ trait: winged_flight, chance: common }]
+    axes:
+      - name: sex
+        values:
+          - { name: male, chance: common }
+          - { name: female, chance: common }
+    data:
+      lifespan: { typical: 60, range: [45, 75], unit: years }
+      height: { typical: 175, range: [150, 200], unit: cm }
+      weight: { typical: 70, range: [50, 95], unit: kg }
+    life_stages:
+      - { name: fledgling, from_age: 0, to_age: 12 }
+      - { name: adult, from_age: 12, to_age: 60 }
+      - { name: elder, from_age: 60 }
+    congenital:
+      - { condition: uncontrolled_discharge, chance: very_low }
