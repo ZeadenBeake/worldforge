@@ -1,6 +1,6 @@
 import { parse } from "yaml";
 import { mergeOrdinals } from "./ordinals";
-import type { Condition, OrdinalConfig, Registry, Slot, Species, Trait, Warning } from "./types";
+import type { BehaviorSet, Condition, OrdinalConfig, Registry, Slot, Species, Trait, Warning } from "./types";
 
 export interface PackManifest {
   id: string;
@@ -17,6 +17,7 @@ export interface Pack {
   slots?: Slot[];
   traits?: Trait[];
   conditions?: Condition[];
+  behaviors?: BehaviorSet[];
   species?: Species[];
 }
 
@@ -31,7 +32,7 @@ export function parsePack(yamlText: string): Pack {
 
 /** Merge packs into one registry. Duplicate ids within a kind are an error. */
 export function buildRegistry(packs: Pack[], ordinals?: Partial<OrdinalConfig>): Registry {
-  const reg: Registry = { slots: {}, traits: {}, conditions: {}, species: {}, ordinals: mergeOrdinals(ordinals) };
+  const reg: Registry = { slots: {}, traits: {}, conditions: {}, species: {}, behaviors: {}, ordinals: mergeOrdinals(ordinals) };
   const add = <T extends { id: string }>(kind: string, into: Record<string, T>, items: T[] | undefined, pack: string) => {
     for (const item of items ?? []) {
       if (item.id in into) throw new Error(`Duplicate ${kind} id "${item.id}" (pack "${pack}")`);
@@ -42,6 +43,7 @@ export function buildRegistry(packs: Pack[], ordinals?: Partial<OrdinalConfig>):
     add("slot", reg.slots, p.slots, p.manifest.id);
     add("trait", reg.traits, p.traits, p.manifest.id);
     add("condition", reg.conditions, p.conditions, p.manifest.id);
+    add("behavior set", reg.behaviors, p.behaviors, p.manifest.id);
     add("species", reg.species, p.species, p.manifest.id);
   }
   return reg;
@@ -57,6 +59,7 @@ export function validateRegistry(reg: Registry): Warning[] {
   }
   for (const sp of Object.values(reg.species)) {
     if (!reg.traits[sp.body_plan]) w("unknown_trait", `Species "${sp.id}" body plan "${sp.body_plan}" is not a trait`, sp.id);
+    if (sp.instincts && !reg.behaviors[sp.instincts]) w("unknown_behavior_set", `Species "${sp.id}" instincts "${sp.instincts}" is not a behavior set`, sp.id);
     for (const [slot, entries] of Object.entries(sp.pools)) {
       if (!reg.slots[slot]) w("unknown_slot", `Species "${sp.id}" pool uses unknown slot "${slot}"`, sp.id);
       for (const e of entries) {
@@ -66,14 +69,20 @@ export function validateRegistry(reg: Registry): Warning[] {
         if (reg.ordinals.chance[e.chance] === undefined) w("unknown_ordinal", `Unknown chance "${e.chance}" in "${sp.id}"`, sp.id);
       }
     }
-    for (const c of sp.congenital ?? []) {
-      if (!reg.conditions[c.condition]) w("unknown_condition", `Species "${sp.id}" congenital list references unknown condition "${c.condition}"`, sp.id);
-      if (reg.ordinals.probability[c.chance] === undefined) w("unknown_ordinal", `Unknown probability "${c.chance}" in "${sp.id}"`, sp.id);
-    }
     for (const axis of sp.axes ?? []) {
       for (const v of axis.values) {
         if (reg.ordinals.chance[v.chance] === undefined) w("unknown_ordinal", `Unknown chance "${v.chance}" on axis "${axis.name}"`, sp.id);
       }
+    }
+  }
+  // Behavior item ids must be globally unique: overrides refer to them.
+  const seen = new Map<string, string>();
+  for (const set of Object.values(reg.behaviors)) {
+    for (const item of set.items) {
+      const prev = seen.get(item.id);
+      if (prev) w("duplicate_behavior_item", `Behavior item id "${item.id}" appears in both "${prev}" and "${set.id}"`, item.id);
+      else seen.set(item.id, set.id);
+      if (reg.ordinals.strength[item.strength] === undefined) w("unknown_ordinal", `Unknown strength "${item.strength}" on "${item.id}"`, item.id);
     }
   }
   return out;

@@ -21,6 +21,7 @@ slots:
   - { id: bioelectric, name: bioelectric, description: Innate electrical generation }
   - { id: emp, name: emp, description: Electromagnetic pulse }
   - { id: flight, name: flight }
+  - { id: discharge_tendency, name: discharge_tendency, description: Trouble containing stored charge }
 
 traits:
   - id: humanoid_body
@@ -55,6 +56,8 @@ traits:
   - { id: rust, slot: plumage_color, label: Rust, content: { prose: rust-red plumage, image_tags: [red feathers] } }
   - { id: ivory, slot: plumage_color, label: Ivory, content: { prose: ivory plumage, image_tags: [white feathers] } }
   - { id: charcoal, slot: plumage_color, label: Charcoal, content: { prose: near-black plumage, image_tags: [black feathers] } }
+  # Not in the species pool: added to an individual by hand (lock it in the genotype).
+  - { id: albino, slot: plumage_color, label: Albino, provides: ["pigment:absent"], content: { prose: pure white plumage and pale eyes with no pigment at all, image_tags: [albino, white feathers, pink eyes] } }
 
   - { id: plain, slot: plumage_pattern, label: Plain, content: { prose: unmarked feathers } }
   - { id: barred, slot: plumage_pattern, label: Barred, content: { prose: barred feathers, image_tags: [barred pattern] } }
@@ -91,18 +94,19 @@ traits:
     requires: ["part:wing.l", "part:wing.r"]
     content: { prose: capable of flight, summary: flies }
 
-conditions:
+  # Not in the species pool either: a rare genetic flaw, added by hand. Being a
+  # trait, it is inherited through the genotype like any other pick.
   - id: uncontrolled_discharge
+    slot: discharge_tendency
     label: Uncontrolled discharge
-    kind_label: genetic disorder
-    target: whole
-    requires: ["power:bioelectric"]
     provides: ["flaw:discharge"]
-    heritable: true
+    requires: ["power:bioelectric"]
     content:
       prose: cannot always contain their charge and occasionally discharges it into the ground and surroundings at random
+      image_tags: [stray sparks]
       summary: prone to random discharges
 
+conditions:
   - id: wing_loss_left
     label: Left wing lost
     kind_label: amputation
@@ -125,10 +129,30 @@ conditions:
     target: whole
     provides: ["power:cybernetic"]
 
+# Behavior sets are test additions (not canon) to exercise resolution.
+behaviors:
+  - id: avian_instincts
+    label: Avian instincts
+    role: instinct
+    items:
+      - { id: roosts_high, label: Roosts high, strength: nudge, requires: ["part:wing"], provides: ["habit:heights"], content: { prose: prefers high perches } }
+      - { id: preens, label: Preens often, strength: habit, requires: ["cover:feathers"], content: { prose: preens constantly } }
+  - id: grounded_culture
+    label: Grounded culture
+    role: culture
+    items:
+      - { id: shuns_heights, label: Shuns heights, strength: drive, conflicts: ["habit:heights"], content: { prose: holds that perching above others is shameful } }
+  - id: skyward_faith
+    label: Skyward faith
+    role: religion
+    items:
+      - { id: sky_worship, label: Sky worship, strength: drive, provides: ["habit:heights"], content: { prose: climbs high to be nearer the sky } }
+
 species:
   - id: avian_humanoid
     label: Avian humanoid
     body_plan: humanoid_body
+    instincts: avian_instincts
     pools:
       wings: [{ trait: feathered_wings, chance: common }]
       mouth: [{ trait: beak, chance: common }]
@@ -162,5 +186,3 @@ species:
       - { name: fledgling, from_age: 0, to_age: 12 }
       - { name: adult, from_age: 12, to_age: 60 }
       - { name: elder, from_age: 60 }
-    congenital:
-      - { condition: uncontrolled_discharge, chance: very_low }

@@ -54,8 +54,6 @@ export interface Condition {
   /** Live dependency: re-checked against the final tag set. Unmet => dormant. */
   requires?: Req[];
   removes?: Tag[];
-  /** Whether breeding can pass this condition on. */
-  heritable?: boolean;
   content?: Content;
 }
 
@@ -104,17 +102,44 @@ export interface Species {
   instincts?: string;
   data?: Record<string, ScalarDef>;
   life_stages?: LifeStage[];
-  /** Conditions rolled at birth. `chance` is a *probability* ordinal. */
-  congenital?: { condition: string; chance: Ordinal }[];
+}
+
+/** Behavior strength is an ordinal label (default: nudge < habit < drive < compulsion). */
+export type Strength = string;
+
+export interface BehaviorItem {
+  /** Unique across the registry; overrides refer to it. */
+  id: string;
+  label: string;
+  content?: Content;
+  strength: Strength;
+  provides?: Tag[];
+  /** Checked against the phenotype's tags. Unmet => dormant (not an error). */
+  requires?: Req[];
+  /** Patterns matched against other behavior items' `provides`. */
+  conflicts?: Tag[];
+}
+
+export interface BehaviorSet {
+  id: string;
+  label: string;
+  role: "instinct" | "culture" | "religion" | "other";
+  items: BehaviorItem[];
+}
+
+export interface BehaviorOverride {
+  item: string;
+  /** keep: win conflicts if present. drop: remove. force: add even if absent/dormant, and win conflicts. */
+  action: "keep" | "drop" | "force";
+  note?: string;
 }
 
 export interface ConditionInstance {
   condition: string;
   target?: Tag;
-  /** World-time of onset (opaque number). Missing => before everything else (e.g. congenital). */
+  /** World-time of onset (opaque number). Missing => before everything else. */
   since?: number;
   note?: string;
-  congenital?: boolean;
 }
 
 export interface Individual {
@@ -127,6 +152,10 @@ export interface Individual {
   /** Years. */
   age: number;
   conditions: ConditionInstance[];
+  /** Behavior set ids. Instincts come from the species. */
+  culture?: string;
+  religions?: string[];
+  behavior_overrides?: BehaviorOverride[];
 }
 
 export interface OrdinalConfig {
@@ -134,6 +163,8 @@ export interface OrdinalConfig {
   chance: Record<string, number>;
   /** Absolute probabilities in [0,1]. */
   probability: Record<string, number>;
+  /** Behavior strength rank; higher wins conflicts. */
+  strength: Record<string, number>;
 }
 
 export interface Registry {
@@ -141,6 +172,7 @@ export interface Registry {
   traits: Record<string, Trait>;
   conditions: Record<string, Condition>;
   species: Record<string, Species>;
+  behaviors: Record<string, BehaviorSet>;
   ordinals: OrdinalConfig;
 }
 

@@ -38,18 +38,47 @@ Deviations from / additions to the original build spec, with the reason for each
 
 ## Data model
 
-- **Congenital conditions:** `species.congenital: [{condition, chance}]` are
-  rolled at sampling time (spec had no step for rolling conditions).
-  `condition.heritable` marks which ones breeding may pass on (breeding not
-  implemented yet).
+- **Rare genetic deviations are traits, not conditions.** Albinism or a
+  discharge flaw lives in the genotype like any other pick, so breeding
+  inherits it through the normal path. It is *not* in the species pool; it is
+  added to an individual by locking it into the genotype. (A deviation that
+  is unusually common for a species belongs in the pool with a "none"
+  majority.) Conditions are therefore never rolled and never inherited, and
+  there is no `heritable` flag and no `species.congenital`.
+- **Locks are explicit intent.** Locking a trait that is outside the species
+  pool is silent; locking a trait into the wrong slot (`slot_mismatch`) or an
+  unknown trait (`unknown_trait`) warns.
 - **One probability scale** (`none 0 / very_low 1% / low 5% / medium 15%`)
-  serves both off-species inheritance and congenital incidence. `very_low` is
-  new.
+  for off-species inheritance and similar. `very_low` is new.
 - **Scalars** sample from a triangular distribution (min, typical, max).
 - **Default age** is uniform within the stage named `adult` (else 0..lifespan).
 - **No species inheritance** in V1. Variants are cloned in the authoring UI.
 
+## Behavior resolution (§7.3)
+
+- Runs *after* expression and never feeds back into it. `requires` on an item
+  is checked against the phenotype's tags; unmet => `dormant` (reported, not
+  an error). Item `provides` only matter for conflicts between items.
+- Priority: strength descending, ties by collection order (instinct, culture,
+  religions as listed; within a set, item order). Items are accepted greedily,
+  and a *suppressed* item never blocks anyone else, so with A>B and a B-C
+  conflict, A and C both stay active.
+- Strength is an ordinal (`nudge<habit<drive<compulsion` by default) and is
+  renameable per world through `OrdinalConfig.strength`.
+- Item ids must be unique across the registry (overrides refer to them);
+  `validateRegistry` reports duplicates.
+- Overrides, last one per item wins:
+  - `drop`: removed *before* conflicts, so it frees its rivals. The item stays
+    in the output as `active: false`, so exporters can mention it.
+  - `keep`: pinned, wins conflicts it would have lost. Requirements still apply.
+  - `force`: pinned, may be an item in none of the layers (layer `forced`),
+    and ignores unmet requirements.
+  - Every overridden item carries `original`, the status resolution would have
+    given it without the override (`active | suppressed | dormant | dropped | absent`).
+    It is computed by actually running resolution twice, not inferred.
+  - Two pinned items that conflict: earlier wins, with `override_conflict`.
+
 ## Not yet implemented
 
-Behavior resolution (§7.3), breeding (§7.4), snapshot assembly (§12), and
-everything outside `packages/core`.
+Breeding (§7.4), snapshot assembly (§12), and everything outside
+`packages/core`.

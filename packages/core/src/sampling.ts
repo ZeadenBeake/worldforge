@@ -1,7 +1,7 @@
-import { chanceWeight, probabilityOf } from "./ordinals";
+import { chanceWeight } from "./ordinals";
 import { createRng, type Rng } from "./rng";
 import { expandAll, tagMatches } from "./tags";
-import type { ConditionInstance, Individual, Ordinal, Registry, Species, Trait, Warning } from "./types";
+import type { Individual, Ordinal, Registry, Species, Trait, Warning } from "./types";
 
 export interface RollLocks {
   axis_values?: Record<string, string>;
@@ -73,7 +73,7 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  * Sample an individual from a species (spec §7.1).
  *
  * Randomness is split into forked streams (`order`, `axis:*`, `slot:*`,
- * `scalar:*`, `age`, `cond:*`) so editing one part of a species does not shift
+ * `scalar:*`, `age`) so editing one part of a species does not shift
  * the rolls of unrelated parts.
  */
 export function rollIndividual(speciesId: string, reg: Registry, opts: RollOptions): RollResult {
@@ -116,8 +116,11 @@ export function rollIndividual(speciesId: string, reg: Registry, opts: RollOptio
 
   for (const [slot, traitId] of Object.entries(locks.genotype ?? {}).sort(([a], [b]) => a.localeCompare(b))) {
     if (slot === body?.slot) continue;
-    if (!pool.get(slot)?.has(traitId)) {
-      warnings.push({ code: "locked_outside_pool", message: `Locked trait "${traitId}" is not in the pool for slot "${slot}"`, subject: traitId });
+    // A lock is explicit intent, so a trait outside the species pool (albinism, a
+    // rare disorder) is allowed silently. A trait placed in the wrong slot is not.
+    const locked = reg.traits[traitId];
+    if (locked && locked.slot !== slot) {
+      warnings.push({ code: "slot_mismatch", message: `Locked trait "${traitId}" belongs to slot "${locked.slot}", not "${slot}"`, subject: traitId });
     }
     take(slot, traitId);
   }
@@ -178,20 +181,10 @@ export function rollIndividual(speciesId: string, reg: Registry, opts: RollOptio
     age = round2(lo + root.fork("age").next() * Math.max(0, hi - lo));
   }
 
-  // 6. congenital conditions
-  const conditions: ConditionInstance[] = [];
-  for (const c of species.congenital ?? []) {
-    if (!reg.conditions[c.condition]) {
-      warnings.push({ code: "unknown_condition", message: `Congenital list references unknown condition "${c.condition}"`, subject: c.condition });
-      continue;
-    }
-    if (root.fork(`cond:${c.condition}`).chance(probabilityOf(reg.ordinals, c.chance, warnings))) {
-      conditions.push({ condition: c.condition, congenital: true });
-    }
-  }
-
+  // Conditions are never rolled: injuries and the like are added by hand. Rare
+  // genetic deviations are traits, added by locking them into the genotype.
   return {
-    individual: { species: speciesId, seed, axis_values, genotype, scalars, age, conditions },
+    individual: { species: speciesId, seed, axis_values, genotype, scalars, age, conditions: [] },
     warnings,
   };
 }

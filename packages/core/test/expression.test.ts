@@ -232,39 +232,38 @@ describe("expression: avian fixture", () => {
     expect(state(p, "flight")).toBe(false);
   });
 
-  it("the discharge disorder is active while electricity exists", () => {
-    const p = express(ind({ ...base, conditions: [{ condition: "uncontrolled_discharge", congenital: true }] }), reg);
-    expect(p.conditions[0]!.active).toBe(true);
+  const flawed = { ...base, genotype: { ...base.genotype, discharge_tendency: "uncontrolled_discharge" } };
+
+  it("the discharge flaw is expressed while electricity exists", () => {
+    const p = express(ind(flawed), reg);
+    expect(state(p, "discharge_tendency")).toBe(true);
     expect(p.tags).toContain("flaw:discharge");
   });
 
-  it("a damaged capacitor silences electricity, EMP and the discharge disorder", () => {
-    const p = express(
-      ind({ ...base, conditions: [{ condition: "uncontrolled_discharge", congenital: true }, { condition: "damaged_capacitor", since: 20 }] }),
-      reg,
-    );
+  it("a damaged capacitor silences electricity, EMP and the discharge flaw (all go latent)", () => {
+    const p = express(ind({ ...flawed, conditions: [{ condition: "damaged_capacitor", since: 20 }] }), reg);
     expect(p.tags).not.toContain("power:bioelectric");
     expect(p.tags).not.toContain("ability:shock");
     expect(state(p, "emp")).toBe(false);
-    expect(p.conditions[0]).toMatchObject({ active: false, inactive_reason: "requires_unmet" });
+    expect(state(p, "discharge_tendency")).toBe(false);
     expect(p.tags).not.toContain("flaw:discharge");
+    // still carried in the genotype, so it can be inherited
+    expect(p.traits.find((t) => t.slot === "discharge_tendency")!.trait).toBe("uncontrolled_discharge");
   });
 
-  it("a cybernetic power cell revives EMP (any-of) but not the disorder", () => {
+  it("a cybernetic power cell revives EMP (any-of) but not the flaw", () => {
     const p = express(
-      ind({
-        ...base,
-        conditions: [
-          { condition: "uncontrolled_discharge", congenital: true },
-          { condition: "damaged_capacitor", since: 20 },
-          { condition: "cybernetic_power_cell", since: 30 },
-        ],
-      }),
+      ind({ ...flawed, conditions: [{ condition: "damaged_capacitor", since: 20 }, { condition: "cybernetic_power_cell", since: 30 }] }),
       reg,
     );
     expect(state(p, "emp")).toBe(true);
     expect(p.tags).toContain("power:cybernetic");
-    expect(p.tags).not.toContain("flaw:discharge");
+    expect(state(p, "discharge_tendency")).toBe(false);
+  });
+
+  it("albinism is an ordinary trait that provides its own tag", () => {
+    const p = express(ind({ ...base, genotype: { ...base.genotype, plumage_color: "albino" } }), reg);
+    expect(p.tags).toContain("pigment:absent");
   });
 });
 
@@ -274,11 +273,21 @@ describe("expression: properties", () => {
   const condIds = Object.keys(reg.conditions);
 
   const individualArb = fc.record({
-    genotype: fc.record(
-      Object.fromEntries(
-        slots.map((s) => [s, fc.constantFrom(...reg.species["avian_humanoid"]!.pools[s]!.map((e) => e.trait))]),
-      ),
-    ),
+    genotype: fc
+      .tuple(
+        fc.record(
+          Object.fromEntries(
+            slots.map((s) => [s, fc.constantFrom(...reg.species["avian_humanoid"]!.pools[s]!.map((e) => e.trait))]),
+          ),
+        ),
+        fc.boolean(), // manually added flaw
+        fc.boolean(), // manually added albinism
+      )
+      .map(([g, flaw, albino]) => ({
+        ...g,
+        ...(flaw ? { discharge_tendency: "uncontrolled_discharge" } : {}),
+        ...(albino ? { plumage_color: "albino" } : {}),
+      })),
     sex: fc.constantFrom("male", "female"),
     age: fc.integer({ min: 0, max: 90 }),
     conds: fc.array(fc.record({ condition: fc.constantFrom(...condIds), since: fc.integer({ min: 0, max: 50 }) }), { maxLength: 5 }),

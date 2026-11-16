@@ -91,12 +91,13 @@ describe("fixture rolls", () => {
     }
   });
 
-  it("rolls the congenital disorder at roughly its 'very_low' (1%) incidence", () => {
-    let n = 0;
-    const N = 4000;
-    for (let i = 0; i < N; i++) if (roll(`cg${i}`).individual.conditions.length > 0) n++;
-    expect(n).toBeGreaterThan(N * 0.003);
-    expect(n).toBeLessThan(N * 0.03);
+  it("never rolls conditions or out-of-pool traits (albinism, the discharge flaw)", () => {
+    for (let i = 0; i < 500; i++) {
+      const { individual } = roll(`oop${i}`);
+      expect(individual.conditions).toEqual([]);
+      expect(individual.genotype["plumage_color"]).not.toBe("albino");
+      expect(individual.genotype).not.toHaveProperty("discharge_tendency");
+    }
   });
 
   it("trait chances follow the ordinal weights (common vs rare)", () => {
@@ -129,10 +130,23 @@ describe("locks", () => {
     expect(individual.age).toBe(33);
   });
 
-  it("warns (but allows) a locked trait outside the pool", () => {
-    const { individual, warnings } = roll("lk2", avian, { genotype: { plumage_color: "slate", mouth: "slate" } });
-    expect(individual.genotype["mouth"]).toBe("slate");
-    expect(warnings.map((w) => w.code)).toContain("locked_outside_pool");
+  it("allows a locked trait outside the pool without warning (manual albinism, rare flaws)", () => {
+    const { individual, warnings } = roll("lk2", avian, {
+      genotype: { plumage_color: "albino", discharge_tendency: "uncontrolled_discharge" },
+    });
+    expect(individual.genotype["plumage_color"]).toBe("albino");
+    expect(individual.genotype["discharge_tendency"]).toBe("uncontrolled_discharge");
+    expect(warnings).toEqual([]);
+  });
+
+  it("warns when a locked trait is placed in the wrong slot", () => {
+    const { warnings } = roll("lk3", avian, { genotype: { mouth: "slate" } });
+    expect(warnings.map((w) => w.code)).toContain("slot_mismatch");
+  });
+
+  it("warns about an unknown locked trait", () => {
+    const { warnings } = roll("lk4", avian, { genotype: { mouth: "ghost" } });
+    expect(warnings.map((w) => w.code)).toContain("unknown_trait");
   });
 });
 

@@ -29,10 +29,17 @@ describe("packs", () => {
     const reg = fixtureRegistry();
     reg.species["avian_humanoid"]!.pools["wings"]!.push({ trait: "ghost", chance: "common" });
     reg.species["avian_humanoid"]!.pools["mouth"]!.push({ trait: "slate", chance: "common" });
-    reg.species["avian_humanoid"]!.congenital!.push({ condition: "nope", chance: "very_low" });
+    reg.species["avian_humanoid"]!.instincts = "nope";
     reg.traits["beak"]!.slot = "mystery";
     const codes = validateRegistry(reg).map((w) => w.code);
-    expect(codes).toEqual(expect.arrayContaining(["unknown_trait", "slot_mismatch", "unknown_condition", "unknown_slot"]));
+    expect(codes).toEqual(expect.arrayContaining(["unknown_trait", "slot_mismatch", "unknown_behavior_set", "unknown_slot"]));
+  });
+
+  it("reports duplicate behavior item ids and unknown strengths", () => {
+    const reg = fixtureRegistry();
+    reg.behaviors["grounded_culture"]!.items.push({ ...reg.behaviors["avian_instincts"]!.items[0]!, strength: "overwhelming" });
+    const codes = validateRegistry(reg).map((w) => w.code);
+    expect(codes).toEqual(expect.arrayContaining(["duplicate_behavior_item", "unknown_ordinal"]));
   });
 
   it("reports unknown ordinal labels", () => {
