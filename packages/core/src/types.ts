@@ -71,12 +71,21 @@ export interface AxisModifiers {
 
 export interface AxisValue {
   name: string;
+  /** Weight when the value is rolled fresh. */
   chance: Ordinal;
+  /**
+   * Weight when this value is inherited from a parent (heritable axes only).
+   * Lets a rare value (a "queen" caste) pass down less often than a common one.
+   * Omitted => neutral: every parent's value is equally likely to be passed on.
+   */
+  inherit?: Ordinal;
   modifiers?: AxisModifiers;
 }
 
 export interface Axis {
   name: string;
+  /** Children may inherit this axis's value from a parent (caste: yes, sex: no). Default false. */
+  heritable?: boolean;
   values: AxisValue[];
 }
 
@@ -152,6 +161,8 @@ export interface Individual {
   /** Years. */
   age: number;
   conditions: ConditionInstance[];
+  /** slot -> species id, for picks that came from a parent of another species. */
+  inherited_from?: Record<string, string>;
   /** Behavior set ids. Instincts come from the species. */
   culture?: string;
   religions?: string[];
@@ -167,6 +178,15 @@ export interface OrdinalConfig {
   strength: Record<string, number>;
 }
 
+export interface BreedingConfig {
+  /** Probability ordinal: chance a slot takes the other-species parent's pick. */
+  off_species: Ordinal;
+  /** Probability ordinal: chance a slot (or heritable axis) ignores the parents and rolls fresh. */
+  mutation: Ordinal;
+  /** Weight multiplier for a parent's *expressed* pick over a latent one. */
+  expressed_bias: number;
+}
+
 export interface Registry {
   slots: Record<string, Slot>;
   traits: Record<string, Trait>;
@@ -174,6 +194,8 @@ export interface Registry {
   species: Record<string, Species>;
   behaviors: Record<string, BehaviorSet>;
   ordinals: OrdinalConfig;
+  /** Per-world overrides of DEFAULT_BREEDING. */
+  breeding?: Partial<BreedingConfig>;
 }
 
 export interface Warning {

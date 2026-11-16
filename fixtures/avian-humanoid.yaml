@@ -22,6 +22,8 @@ slots:
   - { id: emp, name: emp, description: Electromagnetic pulse }
   - { id: flight, name: flight }
   - { id: discharge_tendency, name: discharge_tendency, description: Trouble containing stored charge }
+  - { id: reproduction_mode, name: reproduction_mode }
+  - { id: gestation, name: gestation }
 
 traits:
   - id: humanoid_body
@@ -93,6 +95,17 @@ traits:
     provides: ["move:flight"]
     requires: ["part:wing.l", "part:wing.r"]
     content: { prose: capable of flight, summary: flies }
+
+  - id: sexual_reproduction
+    slot: reproduction_mode
+    label: Sexual reproduction
+    provides: ["repro:sexual"]
+    content: { prose: reproduces sexually, summary: two parents }
+  - id: egg_laying
+    slot: gestation
+    label: Egg-laying
+    provides: ["gestation:egg"]
+    content: { prose: lays eggs rather than bearing live young, image_tags: [], summary: oviparous }
 
   # Not in the species pool either: a rare genetic flaw, added by hand. Being a
   # trait, it is inherited through the genotype like any other pick.
@@ -173,6 +186,8 @@ species:
       bioelectric: [{ trait: bioelectric_physiology, chance: common }]
       emp: [{ trait: emp_pulse, chance: common }]
       flight: [{ trait: winged_flight, chance: common }]
+      reproduction_mode: [{ trait: sexual_reproduction, chance: common }]
+      gestation: [{ trait: egg_laying, chance: common }]
     axes:
       - name: sex
         values:

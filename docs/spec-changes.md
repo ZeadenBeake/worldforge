@@ -78,7 +78,40 @@ Deviations from / additions to the original build spec, with the reason for each
     It is computed by actually running resolution twice, not inferred.
   - Two pinned items that conflict: earlier wins, with `override_conflict`.
 
+## Breeding (§7.4)
+
+- **Same-species parents are symmetric.** The spec weighted the child-species
+  parent heavily, which is wrong when both parents are the same species. Each
+  parent's pick has weight 1; a parent of *another* species has weight
+  `p/(1-p)` for the `off_species` probability `p` (so ~5% at `low`). An
+  *expressed* pick is multiplied by `expressed_bias` (default 2) over a latent one.
+- **Options, not species fields.** `off_species` (default `low`) and
+  `mutation` (default `very_low`) are breed-call options, with world defaults
+  in `Registry.breeding`. `mutation` = chance a slot ignores the parents and
+  draws from the child species' pool.
+- **Child species:** one parent's, at random, or forced with `species`.
+  Body plan, scalar ranges and instincts come from it. Scalars are sampled
+  fresh (not inherited). Conditions are never inherited. Starting age is 0
+  unless given.
+- **Slots a species never rolls are still inherited.** Considered slots are
+  the child pool's slots *plus any slot a parent carries* (this is what lets a
+  hand-added flaw like `discharge_tendency` be passed on). For such a slot a
+  parent with no pick counts as "none", weighted like an expressed pick, so a
+  one-carrier pairing passes it on about half the time and two carriers
+  always do. Children without it have no entry in that slot.
+- **`inherited_from`:** a pick that came from a parent of a different species
+  is recorded as `inherited_from[slot] = species`. A trait carried by any
+  parent of the child's own species is never flagged.
+- **Heritable axes.** `Axis.heritable` (default false: sex is rerolled each
+  time, caste would inherit). A heritable axis takes one parent's value,
+  weighted by each value's optional `inherit` ordinal (neutral if omitted),
+  so a rare "queen" can pass down far less often than "worker". `mutation`
+  rerolls it fresh by `chance`. A parent value the child species lacks falls
+  back to a fresh roll.
+- **Parent count** is checked against `repro:*` tags as a *warning*
+  (`parent_count`), never a block: one parent needs `repro:asexual|both`, two
+  need `repro:sexual|both`. Zero or more than two parents throws.
+
 ## Not yet implemented
 
-Breeding (§7.4), snapshot assembly (§12), and everything outside
-`packages/core`.
+Snapshot assembly (§12) and everything outside `packages/core`.
