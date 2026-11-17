@@ -183,7 +183,7 @@ export interface BreedingConfig {
   off_species: Ordinal;
   /** Probability ordinal: chance a slot (or heritable axis) ignores the parents and rolls fresh. */
   mutation: Ordinal;
-  /** Weight multiplier for a parent's *expressed* pick over a latent one. */
+  /** Weight multiplier for a parent's *expressed* pick over a latent one. Default 1 (neutral): see DEFAULT_BREEDING. */
   expressed_bias: number;
 }
 

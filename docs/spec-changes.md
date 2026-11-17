@@ -83,8 +83,15 @@ Deviations from / additions to the original build spec, with the reason for each
 - **Same-species parents are symmetric.** The spec weighted the child-species
   parent heavily, which is wrong when both parents are the same species. Each
   parent's pick has weight 1; a parent of *another* species has weight
-  `p/(1-p)` for the `off_species` probability `p` (so ~5% at `low`). An
-  *expressed* pick is multiplied by `expressed_bias` (default 2) over a latent one.
+  `p/(1-p)` for the `off_species` probability `p` (so ~5% at `low`).
+- **Expressed bias defaults to 1 (neutral), against the spec.** The spec
+  weighted expressed picks above latent ones. That erodes any axis-gated gene:
+  a latent copy is transmitted at 1/3 against 1/2 for an expressed copy, so a
+  male-only crest gene fell from 31% to ~3% of a 300-strong population in 15
+  generations (measured; it survived only through 1% mutation). The axis must
+  only enable or disable *expression*, never the gene's chance of being passed
+  on, so the default is neutral. `expressed_bias` stays as an opt-in selection
+  pressure (per world via `Registry.breeding`); a regression test covers both.
 - **Options, not species fields.** `off_species` (default `low`) and
   `mutation` (default `very_low`) are breed-call options, with world defaults
   in `Registry.breeding`. `mutation` = chance a slot ignores the parents and

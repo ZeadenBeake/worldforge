@@ -43,7 +43,7 @@ describe("breeding: slot inheritance", () => {
     expect(reds / N).toBeLessThan(0.55);
   });
 
-  it("an expressed pick is favoured over a latent one by the expressed bias (2:1)", () => {
+  it("an expressed pick is favoured over a latent one only when expressed_bias is raised", () => {
     const reg = miniRegistry({
       traits: [
         body, sexual,
@@ -56,15 +56,37 @@ describe("breeding: slot inheritance", () => {
     const mom = ind({ axis_values: { sex: "female" }, genotype: { ...base, mark: "m2" } }); // latent
     expect(express(dad, reg).traits.find((t) => t.slot === "mark")!.expressed).toBe(true);
     expect(express(mom, reg).traits.find((t) => t.slot === "mark")!.expressed).toBe(false);
-    const fromDad = count(N, (i) => child(reg, `e${i}`, [dad, mom]).individual.genotype["mark"] === "m1");
-    expect(fromDad / N).toBeGreaterThan(0.62);
-    expect(fromDad / N).toBeLessThan(0.71);
-    // and the bias is configurable per world
-    reg.breeding = { expressed_bias: 1 };
-    const even = count(N, (i) => child(reg, `e${i}`, [dad, mom]).individual.genotype["mark"] === "m1");
-    expect(even / N).toBeGreaterThan(0.45);
-    expect(even / N).toBeLessThan(0.55);
+    const fromDad = () => count(N, (i) => child(reg, `e${i}`, [dad, mom]).individual.genotype["mark"] === "m1") / N;
+    // default: neutral, so a latent copy is transmitted exactly as faithfully as an expressed one
+    expect(fromDad()).toBeGreaterThan(0.45);
+    expect(fromDad()).toBeLessThan(0.55);
+    // opt-in selection pressure (2:1)
+    reg.breeding = { expressed_bias: 2 };
+    expect(fromDad()).toBeGreaterThan(0.62);
+    expect(fromDad()).toBeLessThan(0.71);
   });
+
+  it("a sex-limited gene is not eroded over generations (latent copies transmit as well as expressed ones)", () => {
+    const reg = fixtureRegistry();
+    const crest = (i: Individual) => i.genotype["crest"] === "display_crest";
+    const freqAfter = (generations: number) => {
+      let pop = Array.from({ length: 200 }, (_, i) => rollIndividual("avian_humanoid", reg, { seed: `g${i}` }).individual);
+      const start = pop.filter(crest).length / pop.length;
+      for (let g = 0; g < generations; g++) {
+        const males = pop.filter((x) => x.axis_values["sex"] === "male");
+        const females = pop.filter((x) => x.axis_values["sex"] === "female");
+        pop = pop.map((_, i) => breed(reg, { seed: `b${g}-${i}`, parents: [males[(i * 7 + g) % males.length]!, females[(i * 13 + g * 3) % females.length]!] }).individual);
+      }
+      return { start, end: pop.filter(crest).length / pop.length };
+    };
+    const neutral = freqAfter(20);
+    expect(neutral.start).toBeGreaterThan(0.25);
+    expect(neutral.end).toBeGreaterThan(0.2); // holds up (it only drifts randomly)
+
+    // documents the knob: a 2:1 expressed bias makes the gene vanish
+    reg.breeding = { expressed_bias: 2 };
+    expect(freqAfter(20).end).toBeLessThan(0.1);
+  }, 60000);
 
   it("the child's slots and body plan come from the child's species", () => {
     const reg = fixtureRegistry();

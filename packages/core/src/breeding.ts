@@ -15,7 +15,14 @@ import {
 import { hasTag } from "./tags";
 import type { BreedingConfig, Individual, Ordinal, Registry, Warning } from "./types";
 
-export const DEFAULT_BREEDING: BreedingConfig = { off_species: "low", mutation: "very_low", expressed_bias: 2 };
+/**
+ * `expressed_bias` defaults to 1 (neutral) on purpose. Any value above 1
+ * penalises latent copies, so a gene gated by an axis (a male-only crest) is
+ * transmitted less by the sex that does not show it, and decays out of the
+ * population within a few generations (measured: 31% -> 3% in 15 generations
+ * at 2). Raise it only if you want visible traits to act as selection pressure.
+ */
+export const DEFAULT_BREEDING: BreedingConfig = { off_species: "low", mutation: "very_low", expressed_bias: 1 };
 
 export interface BreedOptions {
   seed: string | number;
@@ -39,7 +46,8 @@ export interface BreedOptions {
  *   otherwise from the parents' picks. A parent of the child's species has
  *   weight 1, a parent of another species has weight p/(1-p) for the
  *   `off_species` probability p, and an *expressed* pick is multiplied by
- *   `expressed_bias`. Picks from another species are flagged in `inherited_from`.
+ *   `expressed_bias` (neutral by default, see DEFAULT_BREEDING). Picks from
+ *   another species are flagged in `inherited_from`.
  * - A trait outside the species pool (albinism, a rare flaw) is inherited like
  *   any other pick: the genotype is all that matters. That includes slots the
  *   species never rolls: any slot a parent carries is considered, and a parent
