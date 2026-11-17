@@ -6,4 +6,5 @@ export * from "./expression";
 export * from "./sampling";
 export * from "./behavior";
 export * from "./breeding";
+export * from "./snapshot";
 export * from "./pack";

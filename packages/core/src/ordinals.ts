@@ -5,6 +5,9 @@ export const DEFAULT_ORDINALS: OrdinalConfig = {
   // One shared probability scale (used for off-species inheritance and similar).
   probability: { none: 0, very_low: 0.01, low: 0.05, medium: 0.15 },
   strength: { nudge: 1, habit: 2, drive: 3, compulsion: 4 },
+  skill_level: { untrained: 0, novice: 1, competent: 2, expert: 3, master: 4 },
+  // `disinterested` means the individual explicitly dislikes the task.
+  passion: { disinterested: -1, none: 0, interested: 1, burning: 2 },
 };
 
 export function mergeOrdinals(over?: Partial<OrdinalConfig>): OrdinalConfig {
@@ -12,6 +15,8 @@ export function mergeOrdinals(over?: Partial<OrdinalConfig>): OrdinalConfig {
     chance: { ...DEFAULT_ORDINALS.chance, ...over?.chance },
     probability: { ...DEFAULT_ORDINALS.probability, ...over?.probability },
     strength: { ...DEFAULT_ORDINALS.strength, ...over?.strength },
+    skill_level: { ...DEFAULT_ORDINALS.skill_level, ...over?.skill_level },
+    passion: { ...DEFAULT_ORDINALS.passion, ...over?.passion },
   };
 }
 

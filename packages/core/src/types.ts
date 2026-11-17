@@ -69,10 +69,18 @@ export interface AxisModifiers {
   scalars?: Record<string, { mult?: number; add?: number }>;
 }
 
+export interface Pronouns {
+  subject: string;
+  object: string;
+  possessive: string;
+}
+
 export interface AxisValue {
   name: string;
   /** Weight when the value is rolled fresh. */
   chance: Ordinal;
+  /** Default pronouns for individuals with this value (overridable on the individual). */
+  pronouns?: Pronouns;
   /**
    * Weight when this value is inherited from a parent (heritable axes only).
    * Lets a rare value (a "queen" caste) pass down less often than a common one.
@@ -151,7 +159,46 @@ export interface ConditionInstance {
   note?: string;
 }
 
+/** A world-defined skill. No subskill hierarchy in V1 (a future optional `parent` is non-breaking). */
+export interface SkillDef {
+  id: string;
+  label: string;
+  description?: string;
+}
+
+export interface SkillEntry {
+  skill: string;
+  /** Skill-level ordinal (untrained .. master). */
+  level: Ordinal;
+  /** Passion ordinal (disinterested .. burning). */
+  passion: Ordinal;
+  /** Optional free text: "knives, close quarters". */
+  focus?: string;
+}
+
+export interface Thought {
+  text: string;
+  kind: "short" | "formative";
+  /** World-time (opaque number). */
+  since: number;
+  expires?: number;
+}
+
+/** Directional relationship, stored outside the individual. */
+export interface Link {
+  id?: string;
+  from: string;
+  to: string;
+  /** parent, friend, rival, host, ... */
+  type: string;
+  feeling?: string;
+  since?: number;
+}
+
 export interface Individual {
+  name?: string;
+  /** Overrides the pronouns implied by the axis values. */
+  pronouns?: Pronouns;
   species: string;
   seed: string;
   axis_values: Record<string, string>;
@@ -163,6 +210,8 @@ export interface Individual {
   conditions: ConditionInstance[];
   /** slot -> species id, for picks that came from a parent of another species. */
   inherited_from?: Record<string, string>;
+  skills?: SkillEntry[];
+  thoughts?: Thought[];
   /** Behavior set ids. Instincts come from the species. */
   culture?: string;
   religions?: string[];
@@ -176,6 +225,10 @@ export interface OrdinalConfig {
   probability: Record<string, number>;
   /** Behavior strength rank; higher wins conflicts. */
   strength: Record<string, number>;
+  /** Skill level rank (display order only). */
+  skill_level: Record<string, number>;
+  /** Passion rank (display order only). */
+  passion: Record<string, number>;
 }
 
 export interface BreedingConfig {
@@ -193,6 +246,7 @@ export interface Registry {
   conditions: Record<string, Condition>;
   species: Record<string, Species>;
   behaviors: Record<string, BehaviorSet>;
+  skills: Record<string, SkillDef>;
   ordinals: OrdinalConfig;
   /** Per-world overrides of DEFAULT_BREEDING. */
   breeding?: Partial<BreedingConfig>;

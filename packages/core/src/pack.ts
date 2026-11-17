@@ -1,6 +1,6 @@
 import { parse } from "yaml";
 import { mergeOrdinals } from "./ordinals";
-import type { BehaviorSet, Condition, OrdinalConfig, Registry, Slot, Species, Trait, Warning } from "./types";
+import type { BehaviorSet, Condition, OrdinalConfig, Registry, SkillDef, Slot, Species, Trait, Warning } from "./types";
 
 export interface PackManifest {
   id: string;
@@ -18,6 +18,7 @@ export interface Pack {
   traits?: Trait[];
   conditions?: Condition[];
   behaviors?: BehaviorSet[];
+  skills?: SkillDef[];
   species?: Species[];
 }
 
@@ -32,7 +33,7 @@ export function parsePack(yamlText: string): Pack {
 
 /** Merge packs into one registry. Duplicate ids within a kind are an error. */
 export function buildRegistry(packs: Pack[], ordinals?: Partial<OrdinalConfig>): Registry {
-  const reg: Registry = { slots: {}, traits: {}, conditions: {}, species: {}, behaviors: {}, ordinals: mergeOrdinals(ordinals) };
+  const reg: Registry = { slots: {}, traits: {}, conditions: {}, species: {}, behaviors: {}, skills: {}, ordinals: mergeOrdinals(ordinals) };
   const add = <T extends { id: string }>(kind: string, into: Record<string, T>, items: T[] | undefined, pack: string) => {
     for (const item of items ?? []) {
       if (item.id in into) throw new Error(`Duplicate ${kind} id "${item.id}" (pack "${pack}")`);
@@ -44,6 +45,7 @@ export function buildRegistry(packs: Pack[], ordinals?: Partial<OrdinalConfig>):
     add("trait", reg.traits, p.traits, p.manifest.id);
     add("condition", reg.conditions, p.conditions, p.manifest.id);
     add("behavior set", reg.behaviors, p.behaviors, p.manifest.id);
+    add("skill", reg.skills, p.skills, p.manifest.id);
     add("species", reg.species, p.species, p.manifest.id);
   }
   return reg;

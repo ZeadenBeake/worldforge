@@ -119,6 +119,33 @@ Deviations from / additions to the original build spec, with the reason for each
   (`parent_count`), never a block: one parent needs `repro:asexual|both`, two
   need `repro:sexual|both`. Zero or more than two parents throws.
 
+## Snapshot (§12)
+
+`buildSnapshot(registry, { id, individual, links, names, now })` resolves
+everything once and returns plain JSON, **deeply frozen**. Exporters must not
+re-implement any of it. Decisions:
+
+- **Name and pronouns** were missing from the spec. `Individual.name` and
+  `Individual.pronouns` are new; pronouns default from the first axis value
+  that defines them (`AxisValue.pronouns`, e.g. sex), else they/them.
+  The core never hardcodes a sex-to-pronoun mapping.
+- **Scalars** carry their unit: `{ value, unit? }`.
+- **Skills** are world-defined (`Registry.skills`, `SkillDef`); entries are
+  resolved to labels and sorted by level, then passion (disinterested ranks
+  below none). Unknown skills/levels warn but are kept. Ranks are internal.
+- **Thoughts** with `expires <= now` are dropped when `now` is given.
+- **Relations** come from `links` touching `id`, with `direction` (`out` =
+  this -> other) and optional `other_name`. The spec's `{type, other, feeling}`
+  could not express "A is B's parent" vs "B is A's parent".
+- **Behaviors** include dropped items (`active: false`, with `overridden`) so
+  exporters can mention them; suppressed/dormant items are not exposed.
+- **Warnings** aggregate expression, behavior and snapshot-level warnings.
+- Golden snapshots live in `fixtures/golden/` (explicit individuals, not
+  rolled ones, so RNG changes do not churn them).
+
 ## Not yet implemented
 
-Snapshot assembly (§12) and everything outside `packages/core`.
+Everything outside `packages/core`: SQLite storage, the REST API, the pack
+import/export endpoints, exporters, and the UI. Also deferred: storing a
+birth date instead of a bare age, and "intentionally unusual" acknowledgement
+notes on warnings (§8).

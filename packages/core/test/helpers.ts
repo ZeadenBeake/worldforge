@@ -28,7 +28,7 @@ export function miniRegistry(spec: {
   for (const c of spec.conditions ?? []) conditions[c.id] = { label: c.id, ...c };
   const species: Species = { id: "sp", label: "sp", body_plan: "body", pools: {}, ...spec.species };
   const behaviors = Object.fromEntries((spec.behaviors ?? []).map((b) => [b.id, b]));
-  return { slots, traits, conditions, behaviors, species: { sp: species }, ordinals: mergeOrdinals() };
+  return { slots, traits, conditions, behaviors, skills: {}, species: { sp: species }, ordinals: mergeOrdinals() };
 }
 
 export function ind(over: Partial<Individual> = {}): Individual {

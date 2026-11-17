@@ -161,6 +161,13 @@ behaviors:
     items:
       - { id: sky_worship, label: Sky worship, strength: drive, provides: ["habit:heights"], content: { prose: climbs high to be nearer the sky } }
 
+# A trimmed placeholder skill list; the real starter set ships as a template pack.
+skills:
+  - { id: melee, label: Melee, description: Close combat }
+  - { id: crafting, label: Crafting }
+  - { id: social, label: Social }
+  - { id: medicine, label: Medicine }
+
 species:
   - id: avian_humanoid
     label: Avian humanoid
@@ -191,8 +198,8 @@ species:
     axes:
       - name: sex
         values:
-          - { name: male, chance: common }
-          - { name: female, chance: common }
+          - { name: male, chance: common, pronouns: { subject: he, object: him, possessive: his } }
+          - { name: female, chance: common, pronouns: { subject: she, object: her, possessive: her } }
     data:
       lifespan: { typical: 60, range: [45, 75], unit: years }
       height: { typical: 175, range: [150, 200], unit: cm }

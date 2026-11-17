@@ -1,0 +1,325 @@
+{
+  "individual": {
+    "id": "wren",
+    "name": "Wren",
+    "pronouns": {
+      "subject": "she",
+      "object": "her",
+      "possessive": "her"
+    }
+  },
+  "species": {
+    "id": "avian_humanoid",
+    "label": "Avian humanoid"
+  },
+  "seed": "golden-female",
+  "axis_values": {
+    "sex": "female"
+  },
+  "traits": [
+    {
+      "slot": "bioelectric",
+      "trait": "bioelectric_physiology",
+      "label": "Bioelectric physiology",
+      "expressed": true,
+      "content": {
+        "prose": "a body that generates strong electrical current, usable as a weapon or a power source",
+        "image_tags": [
+          "crackling electricity",
+          "sparks"
+        ],
+        "summary": "bioelectric"
+      }
+    },
+    {
+      "slot": "body_plan",
+      "trait": "humanoid_body",
+      "label": "Humanoid",
+      "expressed": true,
+      "content": {
+        "prose": "a humanoid frame",
+        "image_tags": [
+          "humanoid"
+        ],
+        "summary": "humanoid"
+      }
+    },
+    {
+      "slot": "crest",
+      "trait": "display_crest",
+      "label": "Display crest",
+      "expressed": false,
+      "content": {
+        "prose": "a showy crest of head feathers",
+        "image_tags": [
+          "feather crest"
+        ],
+        "summary": "crested"
+      }
+    },
+    {
+      "slot": "discharge_tendency",
+      "trait": "uncontrolled_discharge",
+      "label": "Uncontrolled discharge",
+      "expressed": false,
+      "content": {
+        "prose": "cannot always contain their charge and occasionally discharges it into the ground and surroundings at random",
+        "image_tags": [
+          "stray sparks"
+        ],
+        "summary": "prone to random discharges"
+      }
+    },
+    {
+      "slot": "emp",
+      "trait": "emp_pulse",
+      "label": "EMP pulse",
+      "expressed": true,
+      "content": {
+        "prose": "can emit an electromagnetic pulse strong enough to disable electronics",
+        "summary": "emp pulse"
+      }
+    },
+    {
+      "slot": "flight",
+      "trait": "winged_flight",
+      "label": "Flight",
+      "expressed": false,
+      "content": {
+        "prose": "capable of flight",
+        "summary": "flies"
+      }
+    },
+    {
+      "slot": "gestation",
+      "trait": "egg_laying",
+      "label": "Egg-laying",
+      "expressed": true,
+      "inherited_from": "some_other_species",
+      "content": {
+        "prose": "lays eggs rather than bearing live young",
+        "image_tags": [],
+        "summary": "oviparous"
+      }
+    },
+    {
+      "slot": "integument",
+      "trait": "full_plumage",
+      "label": "Full plumage",
+      "expressed": true,
+      "content": {
+        "prose": "feathers covering the whole body",
+        "image_tags": [
+          "covered in feathers"
+        ],
+        "summary": "feathered"
+      }
+    },
+    {
+      "slot": "mouth",
+      "trait": "beak",
+      "label": "Beak",
+      "expressed": true,
+      "content": {
+        "prose": "a hooked beak in place of a mouth",
+        "image_tags": [
+          "beak"
+        ],
+        "summary": "beaked"
+      }
+    },
+    {
+      "slot": "plumage_color",
+      "trait": "albino",
+      "label": "Albino",
+      "expressed": true,
+      "content": {
+        "prose": "pure white plumage and pale eyes with no pigment at all",
+        "image_tags": [
+          "albino",
+          "white feathers",
+          "pink eyes"
+        ]
+      }
+    },
+    {
+      "slot": "plumage_pattern",
+      "trait": "barred",
+      "label": "Barred",
+      "expressed": true,
+      "content": {
+        "prose": "barred feathers",
+        "image_tags": [
+          "barred pattern"
+        ]
+      }
+    },
+    {
+      "slot": "reproduction_mode",
+      "trait": "sexual_reproduction",
+      "label": "Sexual reproduction",
+      "expressed": true,
+      "content": {
+        "prose": "reproduces sexually",
+        "summary": "two parents"
+      }
+    },
+    {
+      "slot": "wings",
+      "trait": "feathered_wings",
+      "label": "Feathered wings",
+      "expressed": true,
+      "content": {
+        "prose": "a pair of feathered wings",
+        "image_tags": [
+          "feathered wings"
+        ],
+        "summary": "winged"
+      }
+    }
+  ],
+  "parts": [
+    "part:arm.l",
+    "part:arm.r",
+    "part:beak",
+    "part:head",
+    "part:leg.l",
+    "part:leg.r",
+    "part:torso",
+    "part:wing.r"
+  ],
+  "scalars": {
+    "lifespan": {
+      "value": 55,
+      "unit": "years"
+    },
+    "height": {
+      "value": 165,
+      "unit": "cm"
+    },
+    "weight": {
+      "value": 58,
+      "unit": "kg"
+    }
+  },
+  "age": 44,
+  "life_stage": "adult",
+  "behaviors": [
+    {
+      "item": "preens",
+      "label": "Preens often",
+      "source": "avian_instincts",
+      "layer": "instinct",
+      "strength": "habit",
+      "active": true,
+      "content": {
+        "prose": "preens constantly"
+      }
+    },
+    {
+      "item": "shuns_heights",
+      "label": "Shuns heights",
+      "source": "grounded_culture",
+      "layer": "culture",
+      "strength": "drive",
+      "active": true,
+      "content": {
+        "prose": "holds that perching above others is shameful"
+      }
+    }
+  ],
+  "conditions": [
+    {
+      "condition": "wing_loss_left",
+      "label": "Left wing lost",
+      "kind_label": "amputation",
+      "target": "part:wing.l",
+      "since": 10,
+      "note": "caught in a snare",
+      "active": true,
+      "content": {}
+    },
+    {
+      "condition": "damaged_capacitor",
+      "label": "Damaged bioelectric organ",
+      "kind_label": "injury",
+      "since": 20,
+      "active": true,
+      "content": {}
+    },
+    {
+      "condition": "cybernetic_power_cell",
+      "label": "Cybernetic power cell",
+      "kind_label": "augmentation",
+      "since": 30,
+      "active": true,
+      "content": {}
+    }
+  ],
+  "skills": [
+    {
+      "skill": "melee",
+      "label": "Melee",
+      "description": "Close combat",
+      "level": "expert",
+      "passion": "burning",
+      "focus": "knives, close quarters"
+    },
+    {
+      "skill": "crafting",
+      "label": "Crafting",
+      "level": "competent",
+      "passion": "interested",
+      "focus": "feather work"
+    }
+  ],
+  "thoughts": [
+    {
+      "text": "I should never have gone back for the nest.",
+      "kind": "formative",
+      "since": 10
+    },
+    {
+      "text": "The market is loud today.",
+      "kind": "short",
+      "since": 40,
+      "expires": 41
+    }
+  ],
+  "relations": [
+    {
+      "type": "friend",
+      "other": "kestrel",
+      "other_name": "Kestrel",
+      "direction": "in",
+      "feeling": "trusts him",
+      "since": 5
+    },
+    {
+      "type": "parent",
+      "other": "pip",
+      "other_name": "Pip",
+      "direction": "out",
+      "since": 12
+    }
+  ],
+  "warnings": [],
+  "tags": [
+    "ability:emp",
+    "axis:sex=female",
+    "cover:feathers",
+    "gestation:egg",
+    "part:arm.l",
+    "part:arm.r",
+    "part:beak",
+    "part:head",
+    "part:leg.l",
+    "part:leg.r",
+    "part:torso",
+    "part:wing.r",
+    "pigment:absent",
+    "power:cybernetic",
+    "repro:sexual",
+    "stage:adult"
+  ]
+}
