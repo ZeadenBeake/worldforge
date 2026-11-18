@@ -1,0 +1,31 @@
+{
+  "name": "@worldforge/server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "license": "Unlicense",
+  "main": "src/main.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "start": "tsx src/main.ts"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.9",
+    "@worldforge/core": "*",
+    "better-sqlite3": "^13.2.0",
+    "hono": "^4.13.19",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "bin": {
+    "worldforge": "./bin/worldforge.mjs"
+  }
+}

@@ -1,0 +1,10 @@
+# Built-in exporter: a comma-separated image prompt from the image_tags of
+# everything currently expressed. This is the plain version; an optional LLM
+# clean-up pass arrives with the LLM milestone.
+id: image-prompt
+name: Image prompt (tags)
+kind: image_prompt
+description: Comma-separated image tags from the traits, conditions and behaviors in effect.
+content_type: text/plain
+template: |
+  {{image_tag_list}}
