@@ -143,9 +143,65 @@ re-implement any of it. Decisions:
 - Golden snapshots live in `fixtures/golden/` (explicit individuals, not
   rolled ones, so RNG changes do not churn them).
 
+## Server (`packages/server`)
+
+- **Entities have a random `id` *and* a `key`.** Bodies reference each other by
+  `key` (what packs call `id`), so importing a pack never rewrites references.
+  `(world, kind, key)` is unique; the key never changes after creation.
+  `name` is always derived from the body (`label`, or `name` for slots and
+  individuals), never set separately.
+- **One write path.** `Store.apply(world, commands, {dryRun, actor, note})`
+  validates the body (zod schemas live in core, shared with the browser),
+  checks the key, updates the reference table and search index, logs an edit,
+  and bumps the world revision, all in one transaction. A batch is atomic and
+  a failure names the command index. A dry run executes the same code and rolls
+  back, so a preview can never disagree with the real thing. This is also the
+  path every accepted LLM proposal will take.
+- **Updates** are a full replace (`body`) or an RFC 7386 merge patch (`patch`;
+  `null` deletes a key, an object *merges*, so clearing a map takes explicit
+  nulls). `__proto__`/`constructor`/`prototype` are rejected in patches.
+- **Referential integrity** is checked on delete, not on create: a delete is
+  refused with `409 in_use` listing the referrers and link count unless
+  `force`. Creating something that points at a missing key is allowed (pack
+  order does not matter); the validator and the warnings endpoint flag it.
+- **Edit log and undo.** Every change stores full before/after bodies. Only
+  the newest edit of an entity can be undone, as a new edit. Links removed by
+  a forced delete are not restored. (This is the "append-friendly" record the
+  future timeline can build on; no timeline is wired up.)
+- **Packs.** Install requires `confirm: true` and otherwise returns the
+  manifest, counts and content warnings. Existing keys abort by default;
+  `skip` and `replace` are explicit. Imported entities remember
+  `origin {pack, version, key}`; the installed pack and version are recorded.
+  Export covers content kinds only, never individuals.
+- **Search** is SQLite FTS5 over name, key and every string in the body
+  (prefix + stemming). Query text is tokenised and quoted, so FTS syntax in
+  user input is inert.
+- **Exporters are template files** (`*.exporter.yaml`) over a flattened
+  snapshot context. The template language is a Mustache subset with no
+  helpers, partials or expressions; lookups follow only own properties and
+  never `__proto__`/`constructor`; output is capped at 1 MB. A bad plugin is
+  reported by `/api/exporters` and never stops the server, and a plugin cannot
+  replace a built-in. TypeScript-module plugins are not implemented yet.
+  Display rounding (whole-year ages, one-decimal sizes) happens in the template
+  context only; snapshots keep full precision.
+- **Deployment.** Binds to loopback by default; no app-level auth (put it
+  behind Cloudflare Access or similar). SIGTERM closes cleanly and leaves a
+  single database file. `VACUUM INTO` backs it up (`worldforge backup`).
+
+## Known gaps
+
+- **Size is not age-aware.** A newborn is currently sampled and shown at adult
+  height and weight. Scalars need a per-life-stage factor (store the adult
+  value, show the effective one).
+- Exporters list features in slot-alphabetical order as a bullet list. Fragments
+  are written to stand alone, so a flowing paragraph needs either a fragment
+  grammar or the LLM exporter.
+- Stored `age` (rather than a birth date) will drift once a world clock exists.
+- Warning acknowledgement notes ("intentionally unusual", §8) are not built.
+- No CORS configuration, so a browser client on another origin (e.g. a
+  SillyTavern extension) cannot call the API yet.
+- The CLI and server run through `tsx`; there is no production build.
+
 ## Not yet implemented
 
-Everything outside `packages/core`: SQLite storage, the REST API, the pack
-import/export endpoints, exporters, and the UI. Also deferred: storing a
-birth date instead of a bare age, and "intentionally unusual" acknowledgement
-notes on warnings (§8).
+The web UI, the 3D doll, LLM drafting and the SillyTavern/image exporters.
