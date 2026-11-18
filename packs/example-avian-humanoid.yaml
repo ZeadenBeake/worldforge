@@ -3,11 +3,11 @@
 # The male-only crest is a deliberate test addition (sex-limited trait).
 
 manifest:
-  id: fixture-avian-humanoid
-  name: Avian humanoid (test fixture)
+  id: example-avian-humanoid
+  name: Avian humanoid (example)
   version: 0.1.0
   author: ""
-  description: Winged, beaked, fully feathered humanoids with innate bioelectricity and an EMP pulse. Used as the first resolver fixture.
+  description: Winged, beaked, fully feathered humanoids with innate bioelectricity and an EMP pulse. Shipped as the bundled example, and used as the resolver's reference fixture.
   content_warnings: []
 
 slots:

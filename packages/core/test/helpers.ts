@@ -4,7 +4,7 @@ import { buildRegistry, parsePack, mergeOrdinals } from "../src";
 import type { BehaviorSet, Condition, Individual, Registry, Species, Trait } from "../src";
 
 export function fixtureRegistry(): Registry {
-  const path = fileURLToPath(new URL("../../../fixtures/avian-humanoid.yaml", import.meta.url));
+  const path = fileURLToPath(new URL("../../../packs/example-avian-humanoid.yaml", import.meta.url));
   return buildRegistry([parsePack(readFileSync(path, "utf8"))]);
 }
 
