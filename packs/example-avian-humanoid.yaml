@@ -202,8 +202,8 @@ species:
           - { name: female, chance: common, pronouns: { subject: she, object: her, possessive: her } }
     data:
       lifespan: { typical: 60, range: [45, 75], unit: years }
-      height: { typical: 175, range: [150, 200], unit: cm }
-      weight: { typical: 70, range: [50, 95], unit: kg }
+      height: { typical: 175, range: [150, 200], unit: cm, growth: [[0, 0.25], [12, 1]] }
+      weight: { typical: 70, range: [50, 95], unit: kg, growth: [[0, 0.04], [12, 1]] }
     life_stages:
       - { name: fledgling, from_age: 0, to_age: 12 }
       - { name: adult, from_age: 12, to_age: 60 }

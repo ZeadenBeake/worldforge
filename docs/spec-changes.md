@@ -51,6 +51,15 @@ Deviations from / additions to the original build spec, with the reason for each
 - **One probability scale** (`none 0 / very_low 1% / low 5% / medium 15%`)
   for off-species inheritance and similar. `very_low` is new.
 - **Scalars** sample from a triangular distribution (min, typical, max).
+- **Size follows age through a growth curve, not life stages.** A scalar may
+  carry `growth: [[age, fraction], ...]` (linear between points, flat outside
+  them; none means it never changes, e.g. lifespan). The *stored* scalar is
+  always the adult value (the genetic potential), so changing an individual's
+  age never needs a re-roll; the snapshot's `value` is the size at the current
+  age and `adult_value` appears only while the two differ. Per-stage
+  multipliers were rejected because they jump at stage boundaries.
+  `validateRegistry` flags empty curves, non-positive factors and repeated
+  ages. Exporters show the current size.
 - **Default age** is uniform within the stage named `adult` (else 0..lifespan).
 - **No species inheritance** in V1. Variants are cloned in the authoring UI.
 
@@ -190,9 +199,6 @@ re-implement any of it. Decisions:
 
 ## Known gaps
 
-- **Size is not age-aware.** A newborn is currently sampled and shown at adult
-  height and weight. Scalars need a per-life-stage factor (store the adult
-  value, show the effective one).
 - Exporters list features in slot-alphabetical order as a bullet list. Fragments
   are written to stand alone, so a flowing paragraph needs either a fragment
   grammar or the LLM exporter.

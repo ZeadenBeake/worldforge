@@ -98,9 +98,16 @@ export interface Axis {
 }
 
 export interface ScalarDef {
+  /** Adult values: the stored scalar is the genetic potential, not today's size. */
   typical: number;
   range: [number, number];
   unit?: string;
+  /**
+   * Optional growth curve: `[age, fraction of adult value]` points, linear
+   * between them and flat outside them (`[[0, 0.25], [12, 1]]`: a newborn is a
+   * quarter size, full size at 12). No curve means the value never changes with age.
+   */
+  growth?: [number, number][];
 }
 
 export interface LifeStage {

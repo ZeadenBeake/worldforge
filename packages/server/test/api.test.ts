@@ -391,5 +391,7 @@ describe("the whole journey", () => {
     expect(text).toMatch(/^Cedar\nAvian humanoid, 0 years old \(fledgling\)\./);
     expect(text).toContain("Relationships:");
     expect(text).toMatch(/- (Ash|Birch) is parent of (him|her|them)/);
+    // a newborn is nowhere near adult size (the example pack's adults are 150+ cm)
+    expect(Number(/Height: ([\d.]+) cm/.exec(text)![1])).toBeLessThan(60);
   });
 });

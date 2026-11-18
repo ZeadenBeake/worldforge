@@ -139,6 +139,18 @@ describe("templateContext", () => {
     expect(render("text-adventure", { ...male, age: 21.13, scalars: { height: 163.98 } }, "k")).toContain("Avian humanoid, 21 years old (adult).\nHeight: 164 cm");
   });
 
+  it("shows a child at its current size, and still exposes the adult size", () => {
+    const child = { ...male, age: 0, scalars: { lifespan: 60, height: 180, weight: 75 } };
+    const text = render("text-adventure", child, "k");
+    expect(text).toContain("Height: 45 cm");
+    expect(text).toContain("Weight: 3 kg");
+    expect(text).toContain("0 years old (fledgling)");
+    const c3 = templateContext(snapOf(child, "k"));
+    expect((c3["scalars"] as Record<string, { value: number; adult_value: number }>)["height"]).toMatchObject({ value: 45, adult_value: 180 });
+    // an adult's two values coincide
+    expect((templateContext(snapOf(male, "k"))["scalars"] as Record<string, { value: number; adult_value: number }>)["height"]).toMatchObject({ value: 178, adult_value: 178 });
+  });
+
   it("separates active from dormant conditions", () => {
     const conds = templateContext(snapOf({ ...female, conditions: [{ condition: "wing_loss_left", since: 1 }, { condition: "wing_loss_left", since: 2 }] }, "w"));
     expect((conds["conditions"] as unknown[]).length).toBe(1);

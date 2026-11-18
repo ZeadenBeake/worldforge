@@ -1,5 +1,6 @@
 import { resolveBehaviors, type BehaviorLayer, type BehaviorStatus } from "./behavior";
 import { express, type ResolvedCondition } from "./expression";
+import { growthFactor } from "./growth";
 import type { BehaviorItem, Content, Individual, Link, Pronouns, Registry, Species, Tag, Warning } from "./types";
 
 export const THEY: Pronouns = { subject: "they", object: "them", possessive: "their" };
@@ -76,7 +77,8 @@ export interface Snapshot {
   traits: SnapshotTrait[];
   /** Present `part:` tags. */
   parts: Tag[];
-  scalars: Record<string, { value: number; unit?: string }>;
+  /** `value` is the size at the current age; `adult_value` is present only while it differs. */
+  scalars: Record<string, { value: number; unit?: string; adult_value?: number }>;
   age: number;
   life_stage?: string;
   behaviors: SnapshotBehavior[];
@@ -211,10 +213,16 @@ export function buildSnapshot(reg: Registry, input: SnapshotInput): Snapshot {
     relations.sort((a, b) => (a.since ?? -Infinity) - (b.since ?? -Infinity) || a.type.localeCompare(b.type) || a.other.localeCompare(b.other));
   }
 
+  // Stored scalars are adult values; the snapshot reports today's size.
   const scalars: Snapshot["scalars"] = {};
-  for (const [name, value] of Object.entries(ind.scalars)) {
-    const unit = species?.data?.[name]?.unit;
-    scalars[name] = { value, ...(unit ? { unit } : {}) };
+  for (const [name, adult] of Object.entries(ind.scalars)) {
+    const def = species?.data?.[name];
+    const factor = def ? growthFactor(def, ind.age) : 1;
+    scalars[name] = {
+      value: factor === 1 ? adult : Math.round(adult * factor * 100) / 100,
+      ...(def?.unit ? { unit: def.unit } : {}),
+      ...(factor !== 1 ? { adult_value: adult } : {}),
+    };
   }
 
   const snapshot: Snapshot = {

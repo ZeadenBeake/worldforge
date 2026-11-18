@@ -76,6 +76,15 @@ export function validateRegistry(reg: Registry): Warning[] {
         if (reg.ordinals.chance[v.chance] === undefined) w("unknown_ordinal", `Unknown chance "${v.chance}" on axis "${axis.name}"`, sp.id);
       }
     }
+    for (const [name, def] of Object.entries(sp.data ?? {})) {
+      const pts = def.growth;
+      if (!pts) continue;
+      const bad = (msg: string) => w("invalid_growth", `Species "${sp.id}" scalar "${name}": ${msg}`, sp.id);
+      if (pts.length === 0) bad("growth curve has no points");
+      if (pts.some(([age, factor]) => !Number.isFinite(age) || !Number.isFinite(factor))) bad("growth points must be numbers");
+      if (pts.some(([, factor]) => factor <= 0)) bad("growth factors must be above 0");
+      if (new Set(pts.map(([age]) => age)).size !== pts.length) bad("two growth points share an age");
+    }
   }
   // Behavior item ids must be globally unique: overrides refer to them.
   const seen = new Map<string, string>();

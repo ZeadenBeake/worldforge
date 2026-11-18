@@ -59,7 +59,12 @@ const axisValue = z.looseObject({
 
 const axis = z.looseObject({ name: str, heritable: z.boolean().optional(), values: z.array(axisValue).min(1) });
 
-const scalarDef = z.looseObject({ typical: z.number(), range: z.tuple([z.number(), z.number()]), unit: z.string().optional() });
+const scalarDef = z.looseObject({
+  typical: z.number(),
+  range: z.tuple([z.number(), z.number()]),
+  unit: z.string().optional(),
+  growth: z.array(z.tuple([z.number(), z.number()])).optional(),
+});
 const lifeStage = z.looseObject({ name: str, from_age: z.number(), to_age: z.number().optional() });
 
 const behaviorItem = z.looseObject({

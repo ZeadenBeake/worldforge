@@ -73,7 +73,8 @@ export function templateContext(s: Snapshot): Record<string, unknown> {
   // Snapshots keep full precision; what people read is rounded.
   const scalarList = Object.entries(s.scalars).map(([n, v]) => {
     const value = Math.round(v.value * 10) / 10;
-    return { name: n, value, unit: v.unit ?? "", text: `${n} ${value}${v.unit ? ` ${v.unit}` : ""}` };
+    const adult = Math.round((v.adult_value ?? v.value) * 10) / 10;
+    return { name: n, value, adult_value: adult, unit: v.unit ?? "", text: `${n} ${value}${v.unit ? ` ${v.unit}` : ""}` };
   });
 
   const imageTags = [
