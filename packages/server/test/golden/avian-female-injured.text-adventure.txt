@@ -1,0 +1,41 @@
+Wren
+Avian humanoid, 44 years old (adult).
+Height: 165 cm
+Weight: 58 kg
+
+Features:
+- a body that generates strong electrical current, usable as a weapon or a power source
+- a humanoid frame
+- can emit an electromagnetic pulse strong enough to disable electronics
+- lays eggs rather than bearing live young
+- feathers covering the whole body
+- a hooked beak in place of a mouth
+- pure white plumage and pale eyes with no pigment at all
+- barred feathers
+- reproduces sexually
+- a pair of feathered wings
+
+Carried, but not expressed:
+- a showy crest of head feathers
+- cannot always contain their charge and occasionally discharges it into the ground and surroundings at random
+- capable of flight
+
+Conditions:
+- Left wing lost (part:wing.l) [caught in a snare]
+- Damaged bioelectric organ
+- Cybernetic power cell
+
+She tends to:
+- preens constantly
+- holds that perching above others is shameful
+
+Skills:
+- Melee: expert (knives, close quarters)
+- Crafting: competent (feather work)
+
+Formative memories:
+- I should never have gone back for the nest.
+
+Relationships:
+- Kestrel is friend of her (old friends)
+- She is parent of Pip

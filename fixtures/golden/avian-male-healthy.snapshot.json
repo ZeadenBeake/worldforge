@@ -1,0 +1,242 @@
+{
+  "individual": {
+    "id": "kestrel",
+    "name": "Kestrel",
+    "pronouns": {
+      "subject": "he",
+      "object": "him",
+      "possessive": "his"
+    }
+  },
+  "species": {
+    "id": "avian_humanoid",
+    "label": "Avian humanoid"
+  },
+  "seed": "golden-male",
+  "axis_values": {
+    "sex": "male"
+  },
+  "traits": [
+    {
+      "slot": "bioelectric",
+      "trait": "bioelectric_physiology",
+      "label": "Bioelectric physiology",
+      "expressed": true,
+      "content": {
+        "prose": "a body that generates strong electrical current, usable as a weapon or a power source",
+        "image_tags": [
+          "crackling electricity",
+          "sparks"
+        ],
+        "summary": "bioelectric"
+      }
+    },
+    {
+      "slot": "body_plan",
+      "trait": "humanoid_body",
+      "label": "Humanoid",
+      "expressed": true,
+      "content": {
+        "prose": "a humanoid frame",
+        "image_tags": [
+          "humanoid"
+        ],
+        "summary": "humanoid"
+      }
+    },
+    {
+      "slot": "crest",
+      "trait": "display_crest",
+      "label": "Display crest",
+      "expressed": true,
+      "content": {
+        "prose": "a showy crest of head feathers",
+        "image_tags": [
+          "feather crest"
+        ],
+        "summary": "crested"
+      }
+    },
+    {
+      "slot": "emp",
+      "trait": "emp_pulse",
+      "label": "EMP pulse",
+      "expressed": true,
+      "content": {
+        "prose": "can emit an electromagnetic pulse strong enough to disable electronics",
+        "summary": "emp pulse"
+      }
+    },
+    {
+      "slot": "flight",
+      "trait": "winged_flight",
+      "label": "Flight",
+      "expressed": true,
+      "content": {
+        "prose": "capable of flight",
+        "summary": "flies"
+      }
+    },
+    {
+      "slot": "gestation",
+      "trait": "egg_laying",
+      "label": "Egg-laying",
+      "expressed": true,
+      "content": {
+        "prose": "lays eggs rather than bearing live young",
+        "image_tags": [],
+        "summary": "oviparous"
+      }
+    },
+    {
+      "slot": "integument",
+      "trait": "full_plumage",
+      "label": "Full plumage",
+      "expressed": true,
+      "content": {
+        "prose": "feathers covering the whole body",
+        "image_tags": [
+          "covered in feathers"
+        ],
+        "summary": "feathered"
+      }
+    },
+    {
+      "slot": "mouth",
+      "trait": "beak",
+      "label": "Beak",
+      "expressed": true,
+      "content": {
+        "prose": "a hooked beak in place of a mouth",
+        "image_tags": [
+          "beak"
+        ],
+        "summary": "beaked"
+      }
+    },
+    {
+      "slot": "plumage_color",
+      "trait": "slate",
+      "label": "Slate",
+      "expressed": true,
+      "content": {
+        "prose": "slate-grey plumage",
+        "image_tags": [
+          "grey feathers"
+        ]
+      }
+    },
+    {
+      "slot": "plumage_pattern",
+      "trait": "barred",
+      "label": "Barred",
+      "expressed": true,
+      "content": {
+        "prose": "barred feathers",
+        "image_tags": [
+          "barred pattern"
+        ]
+      }
+    },
+    {
+      "slot": "reproduction_mode",
+      "trait": "sexual_reproduction",
+      "label": "Sexual reproduction",
+      "expressed": true,
+      "content": {
+        "prose": "reproduces sexually",
+        "summary": "two parents"
+      }
+    },
+    {
+      "slot": "wings",
+      "trait": "feathered_wings",
+      "label": "Feathered wings",
+      "expressed": true,
+      "content": {
+        "prose": "a pair of feathered wings",
+        "image_tags": [
+          "feathered wings"
+        ],
+        "summary": "winged"
+      }
+    }
+  ],
+  "parts": [
+    "part:arm.l",
+    "part:arm.r",
+    "part:beak",
+    "part:head",
+    "part:leg.l",
+    "part:leg.r",
+    "part:torso",
+    "part:wing.l",
+    "part:wing.r"
+  ],
+  "scalars": {
+    "lifespan": {
+      "value": 60,
+      "unit": "years"
+    },
+    "height": {
+      "value": 178,
+      "unit": "cm"
+    },
+    "weight": {
+      "value": 66,
+      "unit": "kg"
+    }
+  },
+  "age": 31,
+  "life_stage": "adult",
+  "behaviors": [
+    {
+      "item": "preens",
+      "label": "Preens often",
+      "source": "avian_instincts",
+      "layer": "instinct",
+      "strength": "habit",
+      "active": true,
+      "content": {
+        "prose": "preens constantly"
+      }
+    },
+    {
+      "item": "shuns_heights",
+      "label": "Shuns heights",
+      "source": "grounded_culture",
+      "layer": "culture",
+      "strength": "drive",
+      "active": true,
+      "content": {
+        "prose": "holds that perching above others is shameful"
+      }
+    }
+  ],
+  "conditions": [],
+  "skills": [],
+  "thoughts": [],
+  "relations": [],
+  "warnings": [],
+  "tags": [
+    "ability:emp",
+    "ability:shock",
+    "axis:sex=male",
+    "cover:feathers",
+    "feature:crest",
+    "gestation:egg",
+    "move:flight",
+    "part:arm.l",
+    "part:arm.r",
+    "part:beak",
+    "part:head",
+    "part:leg.l",
+    "part:leg.r",
+    "part:torso",
+    "part:wing.l",
+    "part:wing.r",
+    "power:bioelectric",
+    "repro:sexual",
+    "stage:adult"
+  ]
+}

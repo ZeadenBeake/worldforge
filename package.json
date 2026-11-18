@@ -1,0 +1,14 @@
+{
+  "name": "worldforge",
+  "private": true,
+  "license": "Unlicense",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "start": "npm start -w @worldforge/server",
+    "worldforge": "node packages/server/bin/worldforge.mjs"
+  }
+}

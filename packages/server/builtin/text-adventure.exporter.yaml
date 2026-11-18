@@ -1,0 +1,66 @@
+# Built-in exporter: a plain-text character description for text adventures.
+# It is just a template over the resolved snapshot. Copy it into a plugins/
+# directory under a new id to make your own.
+id: text-adventure
+name: Text adventure
+kind: prose
+description: A plain-text description built from the character's own prose fragments.
+content_type: text/plain
+template: |
+  {{name}}
+  {{species}}, {{age}} years old{{#life_stage}} ({{.}}){{/life_stage}}.
+  {{#scalars.height}}
+  Height: {{value}} {{unit}}
+  {{/scalars.height}}
+  {{#scalars.weight}}
+  Weight: {{value}} {{unit}}
+  {{/scalars.weight}}
+  {{#has_expressed}}
+
+  Features:
+  {{/has_expressed}}
+  {{#expressed}}
+  - {{prose}}
+  {{/expressed}}
+  {{#has_latent}}
+
+  Carried, but not expressed:
+  {{/has_latent}}
+  {{#latent}}
+  - {{prose}}
+  {{/latent}}
+  {{#has_conditions}}
+
+  Conditions:
+  {{/has_conditions}}
+  {{#conditions}}
+  - {{label}}{{#target}} ({{.}}){{/target}}{{#prose}}: {{.}}{{/prose}}{{#note}} [{{.}}]{{/note}}
+  {{/conditions}}
+  {{#has_behaviors}}
+
+  {{Subject}} tends to:
+  {{/has_behaviors}}
+  {{#behaviors}}
+  - {{prose}}
+  {{/behaviors}}
+  {{#has_skills}}
+
+  Skills:
+  {{/has_skills}}
+  {{#skills}}
+  - {{label}}: {{level}}{{#focus}} ({{.}}){{/focus}}
+  {{/skills}}
+  {{#has_formative_thoughts}}
+
+  Formative memories:
+  {{/has_formative_thoughts}}
+  {{#formative_thoughts}}
+  - {{text}}
+  {{/formative_thoughts}}
+  {{#has_relations}}
+
+  Relationships:
+  {{/has_relations}}
+  {{#relations}}
+  - {{text}}{{#feeling}} ({{.}}){{/feeling}}
+  {{/relations}}
